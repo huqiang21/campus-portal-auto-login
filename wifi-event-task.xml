@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!-- Event-triggered task template: run the auto-login script once whenever the
+     WLAN re/connect events fire (8001 first connect / 8003 reconnect).
+     The script itself filters by SSID and by online state, so nothing happens
+     for other networks or when already online.
+
+     BEFORE IMPORTING, replace the two placeholders:
+       1. <UserId>...DOMAIN\User...</UserId>   -> your Windows account
+       2. <Arguments>"C:\YourPath\launch-hidden.vbs"</Arguments>
+          -> full path to launch-hidden.vbs
+
+     Import:
+       schtasks /create /tn "Campus Auto Login" /xml wifi-event-task.xml /f
+     (or in Task Scheduler GUI: right pane -> Import Task...)
+-->
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>Run campus-net auto login once when the target Wi-Fi connects.</Description>
+  </RegistrationInfo>
+  <Triggers>
+    <EventTrigger>
+      <Enabled>true</Enabled>
+      <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Microsoft-Windows-WLAN-AutoConfig/Operational"&gt;&lt;Select Path="Microsoft-Windows-WLAN-AutoConfig/Operational"&gt;*[System[(EventID=8001 or EventID=8003)]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
+    </EventTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>DOMAIN\User</UserId>
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel>LeastPrivilege</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <Enabled>true</Enabled>
+    <ExecutionTimeLimit>PT2M</ExecutionTimeLimit>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>wscript.exe</Command>
+      <Arguments>"C:\YourPath\launch-hidden.vbs"</Arguments>
+    </Exec>
+  </Actions>
+</Task>
